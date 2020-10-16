@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lnmp
+  labels:
+    app: lnmp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lnmp
+  template:
+    metadata:
+      labels:
+        app: lnmp
+    spec:
+      containers:
+      - image: lnmp-image.tencentcloudcr.com/lnmp/nginx
+        name: nginx
+        command: ['nginx', '-g', 'daemon off;']
+        ports:
+          - containerPort: 80
+        volumeMounts:
+        - name: log
+          mountPath: /home/work/tool/log
+      - image: lnmp-image.tencentcloudcr.com/lnmp/fpm
+        name: php
+        command: ['/bin/bash', '-c', "tail -f /dev/null"]
+        args: ['mkdir -p log/nginx log/php', 'sudo chown work:work log','php-fpm']
+        volumeMounts:
+        - name: log
+          mountPath: /home/work/tool/log
+      # initContainers:
+      #   - name: init-lnmp
+      #     image: lnmp-image.tencentcloudcr.com/lnmp/php
+      #     workingDir: /home/work/tool
+      #     command: ['/bin/bash', '-c']
+      #     args: ['mkdir -p log/nginx log/php', 'sudo chown work:work log']
+      #     volumeMounts:
+      #       - mountPath: /home/work/tool/log
+      #         name: log
+      volumes:
+      - name: log
+        hostPath:
+          path: /home/work/tool/log
